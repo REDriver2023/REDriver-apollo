@@ -23,8 +23,8 @@ cc_binary(
 
 cc_library(
     name = "planning_component_lib",
-    srcs = ["planning_component.cc"],
-    hdrs = ["planning_component.h"],
+    srcs = ["planning_component.cc", "REDriver.cc", "REDriverTrace.cc"],
+    hdrs = ["planning_component.h", "REDriver.h"],
     copts = [
         "-DMODULE_NAME=\\\"planning\\\"",
     ],
