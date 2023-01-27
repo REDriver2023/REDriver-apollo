@@ -39,6 +39,17 @@ using apollo::routing::RoutingResponse;
 using apollo::storytelling::Stories;
 
 bool PlanningComponent::Init() {
+  // SY Added
+  // SY: prepare the general spec and get the atom specs
+  number_of_fixes = 0;
+  PrepareSpec();
+
+  // AINFO << "SY Module - *****planning module init 01";
+
+  hdmap_sy = HDMapUtil::BaseMapPtr();
+  ACHECK(hdmap_sy) << "Failed to load map file:" << apollo::hdmap::BaseMapFile();
+  // end
+  
   injector_ = std::make_shared<DependencyInjector>();
 
   if (FLAGS_use_navigation_mode) {
@@ -195,11 +206,42 @@ bool PlanningComponent::Proc(
   for (auto& p : *adc_trajectory_pb.mutable_trajectory_point()) {
     p.set_relative_time(p.relative_time() + dt);
   }
+  
+  //SY added
+  // AERROR << "SY Module - Start Planning Check!";
+  // auto begin_of_enforcement = std::chrono::high_resolution_clock::now();
+  PlanningCheckForSpec(&adc_trajectory_pb);
+  // auto end_of_enforcement = std::chrono::high_resolution_clock::now();
+
+  // AINFO << "SY Module - ******NUmber of Fixs: "<< number_of_fixes;
+  // AINFO << "SY Module - ******NUmber of rounds: "<< number_of_rounds;
+  // auto the_plan_validation_time = std::chrono::duration<double, std::milli>(end_of_enforcement - begin_of_enforcement).count();
+  // AINFO << "SY Module - ***Plan Validation runtime: "<< the_plan_validation_time;
+
+  // if (max_validaion_time < the_plan_validation_time){
+  //   max_validaion_time = the_plan_validation_time;
+  // }
+
+  // AINFO << "SY Module - ***Max Plan Validation runtime: "<< max_validaion_time;
+  // avg_validaion_time = (the_plan_validation_time + avg_validaion_time * count)/(count + 1);
+  // AINFO << "SY Module - ***Average Plan Validation runtime: "<< avg_validaion_time;
+  // count ++;
+  //end
+
   planning_writer_->Write(adc_trajectory_pb);
 
   // record in history
   auto* history = injector_->history();
   history->Add(adc_trajectory_pb);
+
+  //SY added
+  // auto end_of_proc = std::chrono::high_resolution_clock::now();
+  // auto the_all_running_time = std::chrono::duration<double, std::milli>(end_of_proc - begin_of_proc).count();
+  // AINFO << "SY Module - ***All runtime: "<< the_all_running_time;
+  // avg_running_time = (the_all_running_time + avg_running_time * count)/(count + 1);
+  // AINFO << "SY Module - ***Average All runtime: "<< avg_running_time;
+  // AINFO << "SY Module - ***Average percentage: "<< avg_validaion_time/avg_running_time;
+  //end
 
   return true;
 }
